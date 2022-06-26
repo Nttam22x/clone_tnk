@@ -6,7 +6,7 @@ import Noty from "noty";
 import { removeCart } from "../../redux/cartSlice";
 import Banking from "../Banking";
 import {makeid} from '../../function/utils'
-import axios from "axios";
+
 
 const Modal = ({auth, setDisplayModal, displayModal, cartItems }) => {
   const [phone, setPhone] = useState(null)
@@ -14,10 +14,6 @@ const Modal = ({auth, setDisplayModal, displayModal, cartItems }) => {
   const [paymentMethod, setPaymentMethod] = useState(null)
   const [openBanking, setOpenBanking] = useState(false)
   const dispatch = useDispatch()
-  const [province, setProvince] = useState([]) 
-  const [provinceValue, setProvinceValue] = useState('') 
-  const [district, setDistrict] = useState([])
-  const [districtValue, setDistrictValue] = useState('')
 
   const codeOrder = useMemo(() => makeid(5), [])
   const {userInfo} = useSelector((state) => state.auth)
@@ -25,7 +21,7 @@ const Modal = ({auth, setDisplayModal, displayModal, cartItems }) => {
     userId: userInfo?.user?.id,
     items: [...cartItems],
     phone: phone,
-    address: `${address},${districtValue},${provinceValue}`,
+    address: `${address}`,
     paymentType: paymentMethod,
     code: openBanking ? codeOrder : ''
   }
@@ -41,7 +37,7 @@ const Modal = ({auth, setDisplayModal, displayModal, cartItems }) => {
       }).show()
       return
     } else {
-      if(!phone || !address || !paymentMethod || !districtValue || !provinceValue) {
+      if(!phone || !address || !paymentMethod) {
         new Noty({
           type: "error",
           timeout: 1500,
@@ -67,19 +63,7 @@ const Modal = ({auth, setDisplayModal, displayModal, cartItems }) => {
     }   
   }
 
-  useEffect(() => {
-   (async() => {
-     const {data} = await axios.get('https://provinces.open-api.vn/api/?depth=3')
-     setProvince(data)
-   })()
-  }, [])
 
-  useEffect(() => {
-    (async() => {
-      const {data} = await axios.get(`https://provinces.open-api.vn/api/d/search/?q=${provinceValue}`)
-      setDistrict(data)
-    })()
-  }, [provinceValue])
  
 
   useEffect(() => {
@@ -105,20 +89,6 @@ const Modal = ({auth, setDisplayModal, displayModal, cartItems }) => {
           <div className={styles.box}>
             <label htmlFor="address">Nhập địa chỉ:</label>
             <input value={address} onChange={(e) => setAddress(e.target.value)} type="text" id="address" placeholder="Địa chỉ của bạn.." />
-          </div>
-          <div className={styles.box}>
-            <select onChange={(e) => setProvinceValue(e.target.value)}>
-              <option value="">Chọn tỉnh thành</option>
-              {province && province.map((prov, index) => (
-                  <option key={index} value={prov.name}>{prov.name}</option>
-              ))}
-            </select>
-            <select onChange={(e) => setDistrictValue(e.target.value)}>
-                <option value="">Chọn huyện</option>
-                {district && district.map((dist, index) => (
-                  <option value={dist.name} key={index}>{dist.name}</option>
-                ))}
-            </select>
           </div>
           <div className={styles.box}>
             <select onChange={(e) => setPaymentMethod(e.target.value)}>

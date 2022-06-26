@@ -7,7 +7,8 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import Head from "next/head";
 import ModalAdmin from "./../../components/ModalAdmin/index";
-
+import apiModule from "../../http";
+import Noty from "noty";
 
 const Order = () => {
   const dispatch = useDispatch();
@@ -16,9 +17,35 @@ const Order = () => {
   const router = useRouter();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const {deleteorder} = apiModule()
 
-  useEffect(() => {
+  const handleDelte = async (id) => {
+    try {
+      setLoadingDelete(true)
+      const {data} = await deleteorder(id)
+      if(data?.success) {
+        setLoadingDelete(false)
+        new Noty({
+          type: "success",
+          timeout: 1000,
+          text: "Xóa thành công",
+          progressBar: false,
+        }).show();
+        return
+      }
+    } catch (error) {
+      setLoadingDelete(false)
+        new Noty({
+          type: "error",
+          timeout: 1000,
+          text: "Lỗi server",
+          progressBar: false,
+        }).show();
+    }
+  }
+  useEffect(() => { 
     if (!userInfo?.auth) {
       router.push("/")
     }
@@ -37,7 +64,7 @@ const Order = () => {
           setLoading(false)
         });
     }
-  }, [userInfo]);
+  }, [userInfo, loadingDelete]);
 
   
   return (
@@ -66,6 +93,7 @@ const Order = () => {
                   <th>Trạng thái</th>
                   <th>Thời gian đặt</th>
                   <th>Code</th>
+                  <th>Hủy đơn</th>
                 </tr>
               </thead>
               <tbody>
@@ -99,6 +127,7 @@ const Order = () => {
                       </td>
                       <td>{<Moment locale="vi" fromNow ago date={order.createdAt} />} trước</td>
                       <td className="code_td">{order.code ? `${order.code}` : <i class="fa-solid fa-x"></i> }</td>
+                      <td><i onClick={() => handleDelte(order._id)} class="block_pr fa-solid fa-trash-can"></i></td>
                     </tr>
                   ))}
               </tbody>
